@@ -111,5 +111,99 @@ public class YelpDao {
 		}
 	}
 	
-	
+	public List<String> getAllCities(){
+		String sql = "SELECT DISTINCT t.city "
+				+ "FROM business t "
+				+ "ORDER BY city ";
+		List<String> result = new ArrayList<>();
+		Connection conn = DBConnect.getConnection();
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			ResultSet res = st.executeQuery();
+			while (res.next()) {
+
+				String city = res.getString("city");
+				result.add(city);
+			}
+			res.close();
+			st.close();
+			conn.close();
+			return result;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public List<Business> getAllBusiness(String city, Integer anno) {
+		String sql = "SELECT * "
+				+ "FROM business b, reviews r "
+				+ "WHERE b.city = ? "
+				+ "AND b.business_id = r.business_id AND YEAR(r.review_date) = ? "
+				+ "GROUP BY b.business_id ";
+		List<Business> result = new ArrayList<Business>();
+		Connection conn = DBConnect.getConnection();
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setString(1, city);
+			st.setInt(2, anno);
+			ResultSet res = st.executeQuery();
+			while (res.next()) {
+
+				Business business = new Business(res.getString("business_id"), 
+						res.getString("full_address"),
+						res.getString("active"),
+						res.getString("categories"),
+						res.getString("city"),
+						res.getInt("review_count"),
+						res.getString("business_name"),
+						res.getString("neighborhoods"),
+						res.getDouble("latitude"),
+						res.getDouble("longitude"),
+						res.getString("state"),
+						res.getDouble("stars"));
+				result.add(business);
+			}
+			res.close();
+			st.close();
+			conn.close();
+			return result;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public Double getMediaRecensioni(Business x, Integer anno) {
+		String sql = "SELECT SUM(r.stars)AS s, COUNT(r.stars)AS n "
+				+ "FROM reviews r "
+				+ "WHERE YEAR(r.review_date) = ? "
+				+ "AND r.business_id = ? ";
+		Double media = 0.0;
+		Connection conn = DBConnect.getConnection();
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, anno);
+			st.setString(2, x.getBusinessId());
+			ResultSet res = st.executeQuery();
+			if (res.first()) {
+				Double s = res.getDouble("s");
+				Integer n = res.getInt("n");
+				media = s/n;
+			}
+			res.close();
+			st.close();
+			conn.close();
+			return media;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 }

@@ -7,6 +7,7 @@ package it.polito.tdp.yelp;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import it.polito.tdp.yelp.model.Business;
 import it.polito.tdp.yelp.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -35,13 +36,13 @@ public class FXMLController {
     private Button btnPercorso; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbCitta"
-    private ComboBox<?> cmbCitta; // Value injected by FXMLLoader
+    private ComboBox<String> cmbCitta; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtX"
     private TextField txtX; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbAnno"
-    private ComboBox<?> cmbAnno; // Value injected by FXMLLoader
+    private ComboBox<Integer> cmbAnno; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbLocale"
     private ComboBox<?> cmbLocale; // Value injected by FXMLLoader
@@ -57,11 +58,31 @@ public class FXMLController {
     @FXML
     void doCreaGrafo(ActionEvent event) {
 
+    	String city = this.cmbCitta.getValue();
+    	Integer anno = this.cmbAnno.getValue();
+    	if(city == null) {
+    		this.txtResult.setText("Inserire una citta nella box");
+    		return;
+    	}
+    	if(anno == null) {
+    		this.txtResult.setText("Inserire un anno nella box");
+    		return;
+    	}
+    	String s = model.creaGrafo(city, anno);
+    	this.txtResult.setText(s);
     }
 
     @FXML
     void doLocaleMigliore(ActionEvent event) {
-
+    	Integer anno = this.cmbAnno.getValue();
+    	if(anno == null) {
+    		this.txtResult.setText("Inserire un anno nella box");
+    		return;
+    	}
+    	Business best = model.getMigliore(anno);
+    	Double mediaBest = model.getBilancioMax();
+    	String s = "Locale migliore : \n"+best.getBusinessName()+" (avente bilancio = "+mediaBest+")\n";
+    	this.txtResult.appendText(s);
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -74,9 +95,15 @@ public class FXMLController {
         assert cmbAnno != null : "fx:id=\"cmbAnno\" was not injected: check your FXML file 'Scene.fxml'.";
         assert cmbLocale != null : "fx:id=\"cmbLocale\" was not injected: check your FXML file 'Scene.fxml'.";
         assert txtResult != null : "fx:id=\"txtResult\" was not injected: check your FXML file 'Scene.fxml'.";
+        for(int i = 2005; i<= 2013; i++) {
+        	this.cmbAnno.getItems().add(i);
+        }
     }
     
     public void setModel(Model model) {
     	this.model = model;
+    	for(String c : model.getCities()) {
+    		this.cmbCitta.getItems().add(c);
+    	}
     }
 }
