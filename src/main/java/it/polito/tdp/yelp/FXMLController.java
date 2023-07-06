@@ -5,6 +5,8 @@
 package it.polito.tdp.yelp;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import it.polito.tdp.yelp.model.Business;
@@ -45,14 +47,47 @@ public class FXMLController {
     private ComboBox<Integer> cmbAnno; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbLocale"
-    private ComboBox<?> cmbLocale; // Value injected by FXMLLoader
+    private ComboBox<String> cmbLocale; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtResult"
     private TextArea txtResult; // Value injected by FXMLLoader
 
     @FXML
     void doCalcolaPercorso(ActionEvent event) {
-    	
+    	String businessName = this.cmbLocale.getValue();
+    	String soglia = this.txtX.getText();
+    	Double sogliaMINPesoArchi;
+    	Integer anno = this.cmbAnno.getValue();
+    	if(anno == null) {
+    		this.txtResult.setText("Inserire un anno nella box");
+    		return;
+    	}
+    	if(businessName == null) {
+    		this.txtResult.setText("Inserire un Locale nella box");
+    		return;
+    	}
+    	if(soglia == null) {
+    		this.txtResult.setText("Inserire un numero nel campo X");
+    		return;
+    	}
+    	try {
+    		sogliaMINPesoArchi = Double.parseDouble(soglia);
+    	}catch(NumberFormatException e) {
+    		this.txtResult.setText("Inserire un numero nel campo X");
+    		return;
+    	}
+    	if(sogliaMINPesoArchi<0 && sogliaMINPesoArchi>1) {
+    		this.txtResult.setText("Inserire un numero tra 0 e 1 nel campo X");
+    		return;
+    	}
+    	model.calcolaCammino(businessName, sogliaMINPesoArchi, anno);
+    	List<Business>res = new ArrayList<>(model.getMigliore());
+    	Integer dimMin = model.getDimensioneMIN();
+    	String s = "Cammino trovato: (con dimensione = "+dimMin+")\n";
+    	for(Business z : res) {
+    		s += z.getBusinessName()+"\n";
+    	}
+    	this.txtResult.setText(s);
     }
 
     @FXML
@@ -70,6 +105,10 @@ public class FXMLController {
     	}
     	String s = model.creaGrafo(city, anno);
     	this.txtResult.setText(s);
+    	
+    	for(Business x : model.getGrafo().vertexSet()) {
+    		this.cmbLocale.getItems().add(x.getBusinessName());
+    	}
     }
 
     @FXML
